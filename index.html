@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>薬飲み忘れ防止</title>
+</head>
+<body>
+  <h1>💊 薬飲み忘れ防止</h1>
+
+  <h2>今日</h2>
+  <p>朝（7:00）：<span id="morning-status">未服用</span>
+    <button onclick="takeMedicine('morning')">飲んだ</button>
+  </p>
+
+  <p>夜（18:00）：<span id="night-status">未服用</span>
+    <button onclick="takeMedicine('night')">飲んだ</button>
+  </p>
+
+  <h2>昨日</h2>
+  <p>朝：<span id="y-morning">―</span></p>
+  <p>夜：<span id="y-night">―</span></p>
+
+  <script src="script.js"></script>
+</body>
+</html>
