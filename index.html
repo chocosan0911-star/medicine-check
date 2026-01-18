@@ -1,86 +1,128 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>お薬飲み忘れ防止</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>お薬チェック</title>
+
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    body { font-family: sans-serif; text-align:center; padding:30px; }
+    h1 { font-size:28px; }
+    #timeMessage { font-size:20px; margin:20px; padding:15px; border-radius:10px; }
+    .normal { background:#e0e0e0; }
+    .time-alert { background:#4caf50; color:white; font-weight:bold; }
+    .missed { background:#f44336; color:white; font-weight:bold; }
+    button { font-size:20px; padding:15px 30px; border-radius:10px; border:none; background:#2196f3; color:white; }
+    #lastTime { font-size:18px; margin-top:20px; }
+  </style>
 
   <!-- EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
-    (function () {
-      emailjs.init("OjzEQ0J-l-_Qwh3ci");
-    })();
+    emailjs.init("OjzEQ0J-l-_Qwh3ci"); // ←自分のPublic Key
   </script>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 30px;
-      background: #f9f9f9;
-    }
-    h1 {
-      font-size: 24px;
-    }
-    button {
-      font-size: 20px;
-      padding: 15px 30px;
-      border: none;
-      border-radius: 8px;
-      background: #4CAF50;
-      color: white;
-    }
-    button:active {
-      opacity: 0.8;
-    }
-    #result {
-      margin-top: 20px;
-      font-size: 18px;
-    }
-  </style>
 </head>
+
 <body>
+<h1>💊 お薬チェック</h1>
 
-<h1>💊 お薬飲み忘れ防止</h1>
-<p>朝 7:00 ／ 夜 18:00</p>
+<div id="timeMessage" class="normal"></div>
 
-<button onclick="takeMedicine()">飲んだ</button>
+<button id="takeBtn">飲んだ</button>
 
-<div id="result"></div>
+<p id="lastTime">まだ飲んでいません</p>
 
 <script>
-function takeMedicine() {
+
+const MORNING = 7;
+const EVENING = 18;
+
+const message = document.getElementById("timeMessage");
+const lastTime = document.getElementById("lastTime");
+const btn = document.getElementById("takeBtn");
+
+let lastTaken = localStorage.getItem("lastTaken");
+
+// 飲み忘れメール送信関数（1回だけ）
+function sendMissedMail(type) {
+  const sent = localStorage.getItem("missMailSent");
+  if (sent === type) return; // すでに送信済み
+
+  emailjs.send(
+    "YOUR_SERVICE_ID",
+    "YOUR_TEMPLATE_ID",
+    {
+      message: `⚠ ${type}のお薬を飲み忘れています`,
+      time: new Date().toLocaleString()
+    }
+  );
+
+  localStorage.setItem("missMailSent", type);
+}
+
+// UI更新
+function updateUI() {
   const now = new Date();
-  const time =
-    now.getFullYear() + "/" +
-    (now.getMonth() + 1) + "/" +
-    now.getDate() + " " +
-    now.getHours() + ":" +
-    now.getMinutes().toString().padStart(2, "0");
+  const hour = now.getHours();
+  const minute = now.getMinutes();
 
-  // 表示
-  document.getElementById("result").innerText =
-    "✅ " + time + " に飲みました";
+  message.className = "normal";
+  message.textContent = "次のお薬時間を待っています";
 
-  // メール送信
+  // 7:00 / 18:00 ピッタリ
+  if ((hour === MORNING || hour === EVENING) && minute === 0) {
+    message.className = "time-alert";
+    message.textContent = "⏰ お薬を飲んでください！";
+  }
+
+  // 飲み忘れ判定
+  if (lastTaken) {
+    const last = new Date(lastTaken);
+
+    // 朝の飲み忘れ（8時以降）
+    if (hour >= 8 && last.getHours() < MORNING) {
+      message.className = "missed";
+      message.textContent = "⚠ 朝のお薬を飲み忘れています";
+      sendMissedMail("朝");
+    }
+
+    // 夜の飲み忘れ（19時以降）
+    if (hour >= 19 && last.getHours() < EVENING) {
+      message.className = "missed";
+      message.textContent = "⚠ 夜のお薬を飲み忘れています";
+      sendMissedMail("夜");
+    }
+  }
+}
+
+// 飲んだボタン
+btn.addEventListener("click", () => {
+  const now = new Date();
+  localStorage.setItem("lastTaken", now);
+  localStorage.removeItem("missMailSent"); // ←リセットしてメール再送可能に
+
+  lastTaken = now;
+  lastTime.textContent = "🕒 最後に飲んだ時間：" + now.toLocaleTimeString();
+
+  // EmailJSで通常報告メール（任意）
   emailjs.send(
     "service_zmsn0wy",
     "template_tt2bsvq",
-    {
-      time: time
-    }
-  ).then(
-    function () {
-      console.log("メール送信成功");
-    },
-    function (error) {
-      console.log("メール送信失敗", error);
-    }
+    { message: "✅ 薬を飲みました", time: now.toLocaleString() }
   );
-}
-</script>
+});
 
+// ページ読み込み時に表示
+if (lastTaken) {
+  lastTime.textContent =
+    "🕒 最後に飲んだ時間：" + new Date(lastTaken).toLocaleTimeString();
+}
+
+updateUI();
+setInterval(updateUI, 60000); // 1分ごと更新
+</script>
 </body>
 </html>
