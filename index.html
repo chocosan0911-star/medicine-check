@@ -2,24 +2,85 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>薬飲み忘れ防止</title>
+  <title>お薬飲み忘れ防止</title>
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script>
+    (function () {
+      emailjs.init("OjzEQ0J-l-_Qwh3ci");
+    })();
+  </script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 30px;
+      background: #f9f9f9;
+    }
+    h1 {
+      font-size: 24px;
+    }
+    button {
+      font-size: 20px;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      background: #4CAF50;
+      color: white;
+    }
+    button:active {
+      opacity: 0.8;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
 </head>
 <body>
-  <h1>💊 薬飲み忘れ防止</h1>
 
-  <h2>今日</h2>
-  <p>朝（7:00）：<span id="morning-status">未服用</span>
-    <button onclick="takeMedicine('morning')">飲んだ</button>
-  </p>
+<h1>💊 お薬飲み忘れ防止</h1>
+<p>朝 7:00 ／ 夜 18:00</p>
 
-  <p>夜（18:00）：<span id="night-status">未服用</span>
-    <button onclick="takeMedicine('night')">飲んだ</button>
-  </p>
+<button onclick="takeMedicine()">飲んだ</button>
 
-  <h2>昨日</h2>
-  <p>朝：<span id="y-morning">―</span></p>
-  <p>夜：<span id="y-night">―</span></p>
+<div id="result"></div>
 
-  <script src="script.js"></script>
+<script>
+function takeMedicine() {
+  const now = new Date();
+  const time =
+    now.getFullYear() + "/" +
+    (now.getMonth() + 1) + "/" +
+    now.getDate() + " " +
+    now.getHours() + ":" +
+    now.getMinutes().toString().padStart(2, "0");
+
+  // 表示
+  document.getElementById("result").innerText =
+    "✅ " + time + " に飲みました";
+
+  // メール送信
+  emailjs.send(
+    "service_zmsn0wy",
+    "template_tt2bsvq",
+    {
+      time: time
+    }
+  ).then(
+    function () {
+      console.log("メール送信成功");
+    },
+    function (error) {
+      console.log("メール送信失敗", error);
+    }
+  );
+}
+</script>
+
 </body>
 </html>
