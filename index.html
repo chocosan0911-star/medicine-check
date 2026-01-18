@@ -10,12 +10,22 @@
   <style>
     body { font-family: sans-serif; text-align:center; padding:30px; }
     h1 { font-size:28px; }
+
+    /* 共通 */
+    .hidden { display:none; }
+
+    /* メイン画面 */
     #timeMessage { font-size:20px; margin:20px; padding:15px; border-radius:10px; }
     .normal { background:#e0e0e0; }
     .time-alert { background:#4caf50; color:white; font-weight:bold; }
     .missed { background:#f44336; color:white; font-weight:bold; }
-    button { font-size:20px; padding:15px 30px; border-radius:10px; border:none; background:#2196f3; color:white; }
+    button { font-size:20px; padding:15px 30px; border-radius:10px; border:none; background:#2196f3; color:white; margin:5px; }
     #lastTime { font-size:18px; margin-top:20px; }
+
+    /* 機能まとめ画面 */
+    #featurePage { text-align:left; max-width:600px; margin:0 auto; }
+    #featurePage h2 { text-align:center; }
+    #featurePage ul { padding-left:20px; }
   </style>
 
   <!-- EmailJS -->
@@ -23,19 +33,79 @@
   <script>
     emailjs.init("OjzEQ0J-l-_Qwh3ci"); // ←自分のPublic Key
   </script>
-
 </head>
 
 <body>
-<h1>💊 お薬チェック</h1>
 
-<div id="timeMessage" class="normal"></div>
+<!-- ================= メイン画面 ================= -->
+<div id="mainPage">
+  <h1>💊 お薬チェック</h1>
 
-<button id="takeBtn">飲んだ</button>
+  <!-- 機能まとめへ遷移ボタン -->
+  <button id="toFeatureBtn">アプリ機能を見る</button>
 
-<p id="lastTime">まだ飲んでいません</p>
+  <div id="timeMessage" class="normal"></div>
+  <button id="takeBtn">飲んだ</button>
+  <p id="lastTime">まだ飲んでいません</p>
+</div>
+
+<!-- ================= 機能まとめ画面 ================= -->
+<div id="featurePage" class="hidden">
+  <h2>💊 お薬チェックアプリ機能まとめ</h2>
+  <ul>
+    <li>1️⃣ <b>時間通知</b>
+      <ul>
+        <li>朝 7:00 と 夜 18:00 に画面でお知らせ</li>
+        <li>ピッタリの時は 緑色 で強調</li>
+      </ul>
+    </li>
+    <li>2️⃣ <b>飲んだボタン</b>
+      <ul>
+        <li>「飲んだ」を押すと その時刻を記録</li>
+        <li>表示例：🕒 最後に飲んだ時間：7:03</li>
+        <li>ページを閉じても記録は残る</li>
+      </ul>
+    </li>
+    <li>3️⃣ <b>飲み忘れチェック</b>
+      <ul>
+        <li>朝8時以降に朝薬を飲んでいない → 赤背景で警告</li>
+        <li>夜19時以降に夜薬を飲んでいない → 赤背景で警告</li>
+      </ul>
+    </li>
+    <li>4️⃣ <b>飲み忘れメール通知</b>
+      <ul>
+        <li>飲み忘れたら 1回だけメール送信</li>
+        <li>飲んだらメール送信はリセット</li>
+      </ul>
+    </li>
+    <li>5️⃣ <b>自動更新</b>
+      <ul>
+        <li>1分ごとに画面が自動チェック</li>
+        <li>飲み忘れや次の服薬時間を自動表示</li>
+      </ul>
+    </li>
+  </ul>
+  <!-- 戻るボタン -->
+  <button id="backBtn">← 戻る</button>
+</div>
 
 <script>
+const mainPage = document.getElementById("mainPage");
+const featurePage = document.getElementById("featurePage");
+const toFeatureBtn = document.getElementById("toFeatureBtn");
+const backBtn = document.getElementById("backBtn");
+
+// ページ切り替え
+toFeatureBtn.addEventListener("click", () => {
+  mainPage.classList.add("hidden");
+  featurePage.classList.remove("hidden");
+});
+backBtn.addEventListener("click", () => {
+  featurePage.classList.add("hidden");
+  mainPage.classList.remove("hidden");
+});
+
+// ================= 既存コード =================
 
 const MORNING = 7;
 const EVENING = 18;
