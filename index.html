@@ -55,7 +55,7 @@
   <ul>
     <li>1️⃣ <b>時間通知</b>
       <ul>
-        <li>朝 7:00 と 夜 18:00 に画面でお知らせ</li>
+        <li>朝 7時から10時まで と 夜 18:00から20時 に画面でお知らせ</li>
         <li>ピッタリの時は 緑色 で強調</li>
       </ul>
     </li>
@@ -107,8 +107,11 @@ backBtn.addEventListener("click", () => {
 
 // ================= 既存コード =================
 
-const MORNING = 7;
-const EVENING = 18;
+const MORNING_START = 7;
+const MORNING_END   = 9; // 7時から9時までに
+const EVENING_START = 18; 
+const EVENING_END   = 20;// 18時半から20時までに
+
 
 const message = document.getElementById("timeMessage");
 const lastTime = document.getElementById("lastTime");
@@ -143,24 +146,35 @@ function updateUI() {
   message.textContent = "次のお薬時間を待っています";
 
   // 7:00 / 18:00 ピッタリ
-  if ((hour === MORNING || hour === EVENING) && minute === 0) {
-    message.className = "time-alert";
-    message.textContent = "⏰ お薬を飲んでください！";
-  }
+  const currentHour = hour + minute / 60; // 時間を小数に変換
+
+// 朝のお薬時間チェック
+if (currentHour >= MORNING_START && currentHour <= MORNING_END) {
+  message.className = "time-alert";
+  message.textContent = "⏰ 朝のお薬を飲んでください！";
+}
+
+// 夜のお薬時間チェック
+if (currentHour >= EVENING_START && currentHour <= EVENING_END) {
+  message.className = "time-alert";
+  message.textContent = "⏰ 夜のお薬を飲んでください！";
+}
+
 
   // 飲み忘れ判定
   if (lastTaken) {
     const last = new Date(lastTaken);
 
     // 朝の飲み忘れ（8時以降）
-    if (hour >= 8 && last.getHours() < MORNING) {
+    if (currentHour > MORNING_END && last.getHours() < MORNING_START) {
       message.className = "missed";
       message.textContent = "⚠ 朝のお薬を飲み忘れています";
       sendMissedMail("朝");
     }
 
+
     // 夜の飲み忘れ（19時以降）
-    if (hour >= 19 && last.getHours() < EVENING) {
+    if (currentHour > EVENING_END && last.getHours() < EVENING_START) {
       message.className = "missed";
       message.textContent = "⚠ 夜のお薬を飲み忘れています";
       sendMissedMail("夜");
@@ -196,4 +210,3 @@ setInterval(updateUI, 60000); // 1分ごと更新
 </script>
 </body>
 </html>
-
